@@ -840,9 +840,7 @@ input[type="password"]:focus {
           <label for="medName">Medicamento o Principio Activo</label>
           <input type="text" id="medName" placeholder="Ej: Paracetamol, Gabapentina..." />
 
-          <div class="quick-chips" id="quickChipsContainer"></div>
-
-          <button type="submit" class="drop-btn">
+          <button type="submit" class="drop-btn" style="margin-top:28px;">
             Consultar Vademécum
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
@@ -883,7 +881,7 @@ input[type="password"]:focus {
 
   <script>
     let currentTarget = 'Humano';
-    let fontSizes = ['0.85rem', '0.95rem', '1.05rem', '1.15rem', '1.25rem'];
+    let fontSizes = ['0.85rem', '0.95rem', '1.05rem', '1.15rem', '1.25rem', '1.4rem', '1.55rem', '1.7rem', '1.85rem', '2rem', '2.2rem'];
     let currentFontIdx = 2;
     let isPCMode = false;
 
@@ -895,24 +893,6 @@ input[type="password"]:focus {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
-    }
-
-    const popularMeds = {
-      Humano: ['Paracetamol', 'Ibuprofeno', 'Omeprazol', 'Amoxicilina', 'Clonazepam', 'Loratadina', 'Ketorolaco'],
-      Gato: ['Gabapentina', 'Meloxicam', 'Prednisolona', 'Amoxicilina + Ac. Clavulánico', 'Metamizol', 'Ondansetrón']
-    };
-
-    function renderQuickChips() {
-      const container = document.getElementById('quickChipsContainer');
-      const meds = popularMeds[currentTarget];
-      container.innerHTML = meds.map(med => `
-        <button type="button" class="chip" onclick="selectQuickMed('${escapeHTML(med)}')">${escapeHTML(med)}</button>
-      `).join('');
-    }
-
-    function selectQuickMed(med) {
-      document.getElementById('medName').value = med;
-      searchMedication();
     }
 
     function toggleTheme() {
@@ -975,7 +955,6 @@ input[type="password"]:focus {
         document.getElementById('apiKey').value = savedKey;
       }
 
-      renderQuickChips();
       renderHistory();
       initTabPill();
     });
@@ -992,7 +971,6 @@ input[type="password"]:focus {
       tabG.classList.toggle('active', !isHuman);
       tabG.setAttribute('aria-selected', !isHuman);
       
-      renderQuickChips();
       positionTabPill();
     }
 
@@ -1033,11 +1011,20 @@ input[type="password"]:focus {
         tabPill.style.left = Math.max(0, Math.min(pillStartLeft + dx, max)) + 'px';
       });
 
-      const endDrag = () => {
+      const endDrag = (e) => {
         if (!pillDrag) return;
         pillDrag = false;
         tabPill.classList.remove('active-touch');
         tabPill.style.transition = '';
+
+        // Toque directo: si no hubo arrastre, selecciona el botón tocado
+        if (!pillMoved && e && e.type === 'pointerup') {
+          const tapped = e.target.closest ? e.target.closest('.liquid-tab') : null;
+          if (tapped) {
+            selectTarget(tapped.id === 'tabGato' ? 'Gato' : 'Humano');
+            return;
+          }
+        }
 
         const tabs = [...tabSelector.querySelectorAll('.liquid-tab')];
         const center = tabPill.offsetLeft + tabPill.offsetWidth / 2;
